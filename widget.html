@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ACTN Support</title>
+  <style>
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial; margin:0; }
+    header { background:#1f6feb; color:#fff; padding:10px 14px; font-weight:600 }
+    #log { padding:12px; height: calc(100vh - 120px); overflow:auto; background:#fafafa }
+    .msg { margin:10px 0; max-width: 90%; }
+    .user { text-align:right; }
+    .bubble { display:inline-block; padding:8px 10px; border-radius:10px; background:#fff; border:1px solid #eee }
+    .user .bubble { background:#e8eefc; border-color:#dce3fb }
+    footer { display:flex; gap:8px; padding:10px; background:#fff; border-top:1px solid #eee }
+    input { flex:1; padding:10px; border-radius:8px; border:1px solid #ddd }
+    button { padding:10px 14px; border-radius:8px; border:0; background:#1f6feb; color:#fff; font-weight:600; cursor:pointer }
+    .ctas a { margin-right:8px; display:inline-block; padding:6px 10px; border:1px solid #ddd; border-radius:8px; text-decoration:none; color:#333; background:#fff }
+    .srcs { color:#666; font-size:12px; margin-top:6px }
+  </style>
+</head>
+<body>
+  <header>ACTN — Assistant</header>
+  <div id="log">
+    <div class="msg"><div class="bubble">Bonjour 👋, comment puis-je vous aider ? (SAV, contacts, CGV, catalogue)</div></div>
+  </div>
+  <footer>
+    <input id="q" placeholder="Posez votre question…" />
+    <button id="go">Envoyer</button>
+  </footer>
+<script>
+const API = 'https://bot.actn.fr/chat'; // proxy nginx -> Node
+const log = document.getElementById('log'), q = document.getElementById('q'), go = document.getElementById('go');
+
+function add(role, html, ctas=[], sources=[]) {
+  const div = document.createElement('div'); div.className = 'msg ' + (role==='user'?'user':'');
+  const bub = document.createElement('div'); bub.className = 'bubble'; bub.innerHTML = html;
+  div.appendChild(bub);
+
+  if (ctas.length) {
+    const c = document.createElement('div'); c.className='ctas';
+    for (const x of ctas) {
+      const a = document.createElement('a'); a.textContent = x.label;
+      if (x.url) { a.href = x.url; a.target='_blank'; a.rel='noreferrer'; }
+      else if (x.tel) { a.href='tel:'+x.tel; }
+      c.appendChild(a);
+    }
+    div.appendChild(c);
+  }
+  if (sources.length) {
+    const s = document.createElement('div'); s.className='srcs';
+    s.textContent = 'Sources: ' + sources.map(s=>`[${s.n}]`).join(' ');
+    div.appendChild(s);
+  }
+
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+async function send() {
+  const text = q.value.trim(); if (!text) return;
+  add('user', text); q.value = ''; go.disabled = true;
+  try {
+    const r = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: text })});
+    const j = await r.json();
+    if (j.error) add('bot', 'Désolé, une erreur est survenue.');
+    else add('bot', j.answer.replace(/\n/g,'<br/>'), j.ctas || [], j.sources || []);
+  } catch(e){ add('bot','Erreur réseau.'); }
+  go.disabled = false; q.focus();
+}
+go.onclick = send; q.onkeydown = (e)=> (e.key==='Enter') && send();
+</script>
+</body>
+</html>
+
+
