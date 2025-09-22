@@ -17,6 +17,8 @@
     button { padding:10px 14px; border-radius:8px; border:0; background:#1f6feb; color:#fff; font-weight:600; cursor:pointer }
     .ctas a { margin-right:8px; display:inline-block; padding:6px 10px; border:1px solid #ddd; border-radius:8px; text-decoration:none; color:#333; background:#fff }
     .srcs { color:#666; font-size:12px; margin-top:6px }
+     footer { position: relative; z-index: 2; }
+  #log   { position: relative; z-index: 1; }
   </style>
 </head>
 <body>
@@ -29,7 +31,7 @@
     <button id="go">Envoyer</button>
   </footer>
 <script>
-const API = 'https://bot.actn.fr/chat'; // proxy nginx -> Node
+const API = 'http://localhost:8080/chat'; // proxy nginx -> Node
 const log = document.getElementById('log'), q = document.getElementById('q'), go = document.getElementById('go');
 
 function add(role, html, ctas=[], sources=[]) {

@@ -11,7 +11,8 @@ const IDX_FILE   = process.env.IDX_FILE   || './index.json';
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '2mb', type: ['application/json', 'text/plain'] }));
+
 
 /* --------------------- Utils --------------------- */
 const norm = v => Math.sqrt(v.reduce((s,x)=>s+x*x,0)) || 1;
